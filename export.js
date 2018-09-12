@@ -8,11 +8,22 @@ const cookie = {
   'path': '/',
 };
 
-const saveAs = path.resolve(__dirname, `res/slide-19794`);
+const slideId = 19819;
 
 (async function () {
-  console.log('Started...');
-  const files = await scripts.saveSlideAs('https://dev4-account2.testapic.com/customer/result/94/slide/view/19794', cookie, saveAs);
-  console.log('Generated files are: ' + JSON.stringify(files));
-  console.log('Done.');
+  try {
+    console.log('Starting...');
+    const files = await scripts.saveSlideAs({
+      url: `https://dev4-account2.testapic.com/customer/result/94/slide/view/${slideId}`,
+      cookie: cookie,
+      saveAs: path.resolve(__dirname, `res/slide-${slideId}`),
+      slideId: slideId,
+    });
+    console.log('Generated files are: ' + JSON.stringify(files));
+    console.log('Done.');
+  } catch (e) {
+    console.error('saveSlideAs was finished with error: ' + e.message);
+  } finally {
+    process.exit(0);
+  }
 })();
