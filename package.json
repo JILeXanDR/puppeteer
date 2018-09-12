@@ -1,0 +1,15 @@
+{
+  "name": "testapic_phantomjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "scripts.js",
+  "dependencies": {
+    "puppeteer": "^1.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "export": "node export.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
