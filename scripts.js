@@ -47,9 +47,8 @@ module.exports.saveSlideAs = async function (options) {
   await page.setViewport({width: 1920, height: 1080});
   await page.setCookie(cookie);
   console.log(`opening url ${url}...`);
-  await page.goto(url, {waitUntil: 'networkidle2'});
+  await page.goto(url, {waitUntil: 'networkidle0'});
   console.log('URL was opened');
-  await page.waitForSelector('.sixteen.wide.column.slide.cover.content');
 
   const files = [];
 

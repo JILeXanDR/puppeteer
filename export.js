@@ -8,7 +8,7 @@ const cookie = {
   'path': '/',
 };
 
-const slideId = 19819;
+const slideId = 19799;
 
 (async function () {
   try {
@@ -16,7 +16,7 @@ const slideId = 19819;
     const files = await scripts.saveSlideAs({
       url: `https://dev4-account2.testapic.com/customer/result/94/slide/view/${slideId}`,
       cookie: cookie,
-      saveAs: path.resolve(__dirname, `res/slide-${slideId}`),
+      saveAs: path.resolve(__dirname, `slide-${slideId}`),
       slideId: slideId,
     });
     console.log('Generated files are: ' + JSON.stringify(files));
