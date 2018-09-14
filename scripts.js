@@ -1,24 +1,17 @@
 const puppeteer = require('puppeteer');
+const PDFMerge = require('pdf-merge');
+const path = require('path');
+const fs = require('fs');
+
+let cookie;
 
 /**
  *
- * @param {Object} options
- * @returns {Promise<Array>}
+ * @returns {Promise<String>}
  */
-module.exports.saveSlideAs = async function (options) {
+async function saveSlideAs(url, saveAs) {
 
-  const {url, cookie, saveAs, slideId} = options;
-
-  async function toPng(page) {
-    const element = await page.$('.pusher');
-    let path = saveAs + '.png';
-    files.push(path);
-    return element.screenshot({path: path});
-  }
-
-  async function toPdf(page) {
-    let path = saveAs + '.pdf';
-    files.push(path);
+  async function toPdf(page, path) {
     await page.emulateMedia('screen');
     return page.pdf({
       path: path,
@@ -50,14 +43,88 @@ module.exports.saveSlideAs = async function (options) {
   await page.goto(url, {waitUntil: 'networkidle0'});
   console.log('URL was opened');
 
-  const files = [];
-
   await changeDom(page);
 
-  await toPng(page);
-  await toPdf(page);
+  let path = saveAs + '.pdf';
+
+  await toPdf(page, path);
 
   await browser.close();
 
-  return files;
+  return path;
+}
+
+module.exports.setCookie = function (val) {
+  cookie = val;
 };
+
+/**
+ * @param urls
+ * @returns {Promise<[]>}
+ */
+function fromUrlsToPdfFiles(urls) {
+  const promises = [];
+  urls.forEach(async (slideUrl) => {
+    try {
+      const {resultId, slideId} = parseSlideUrl(slideUrl);
+      const saveAs = path.resolve(__dirname, `temp/result-${resultId}_slide-${slideId}`);
+      promises.push(saveSlideAs(slideUrl, saveAs));
+    } catch (e) {
+      console.error('saveSlideAs was finished with error: ' + e.message);
+    }
+  });
+  return Promise.all(promises);
+}
+
+/**
+ *
+ * @param {Array<String>} urls
+ * @returns {Promise<*>} Final PDF file buffer
+ */
+module.exports.createPdfBufferFromUrls = async function (urls) {
+  return concatPdfFiles(await fromUrlsToPdfFiles(urls));
+};
+
+async function concatPdfFiles(files) {
+  return await PDFMerge(files, {output: 'Buffer'});
+}
+
+/**
+ *
+ * @param buffer
+ * @param path
+ * @returns {Promise<void>}
+ */
+module.exports.saveBufferedData = async function (buffer, path) {
+  fs.writeFile(path, buffer, 'binary', (err) => {
+    if (err) throw err;
+    return path;
+  })
+};
+
+/**
+ *
+ * @param {String} url
+ * @returns {{resultId: number, slideId: number}}
+ */
+function parseSlideUrl(url) {
+
+  const regex = /result\/(\d+).*view\/(\d+)/g;
+  let m;
+  let res = {
+    resultId: 0,
+    slideId: 0,
+  };
+
+  while ((m = regex.exec(url)) !== null) {
+    if (m.index === regex.lastIndex) {
+      regex.lastIndex++;
+    }
+    m.forEach((match, groupIndex) => {
+      if (groupIndex === 1) res.resultId = match;
+      if (groupIndex === 2) res.slideId = match;
+    });
+  }
+
+  return res
+}
